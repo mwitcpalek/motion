@@ -3,23 +3,23 @@ package io.j3ff.motion;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayDeque;
+import java.util.Deque;
 
 class Motion {
 
-  private final int distance;
-  private final int maxVelocity;
-  private final int maxVelocityTime;
-  private final int maxAccelerationTime;
   private final int period;
-
-  private final double vProg;
-
-  private final MovingAverage velocityFilter;
-  private final MovingAverage accerationFilter;
-
+  private final double nominalVelocity;
+  private final Deque<Integer> velocityFilter;
+  private final int velocityFilterLength;
+  private final Deque<Double> accelerationFilter;
+  private final int accelerationFilterLength;
   private final int totalInputs;
-
+  private double velocityFilterOutput;
+  private double velocityFilterTotal;
+  private double accelerationFilterTotal;
   private int iteration;
+  private int input;
   private double previousVelocity;
   private double currentVelocity;
   private double currentAcceleration;
@@ -27,33 +27,41 @@ class Motion {
   private double elapsedTime;
 
   Motion(int distance, int maxVelocity, int maxVelocityTime, int maxAccelerationTime, int period) {
-    this.distance = distance;
-    this.maxVelocity = maxVelocity;
-    this.maxVelocityTime = maxVelocityTime;
-    this.maxAccelerationTime = maxAccelerationTime;
     this.period = period;
 
-    vProg = maxVelocity / 100d;
-    double t = distance / vProg;
-    totalInputs = (int) Math.ceil(t / period);
+    nominalVelocity = maxVelocity / 100d;
+    double nominalTime = distance / nominalVelocity;
+    totalInputs = (int) Math.ceil(nominalTime / period);
 
-    velocityFilter = new MovingAverage((int) Math.ceil(maxVelocityTime / period));
-    accerationFilter = new MovingAverage((int) Math.ceil(maxAccelerationTime / period));
+    velocityFilterLength = (int) Math.ceil(maxVelocityTime / period);
+    velocityFilter = new ArrayDeque<>(velocityFilterLength);
+    accelerationFilterLength = (int) Math.ceil(maxAccelerationTime / period);
+    accelerationFilter = new ArrayDeque<>(accelerationFilterLength);
   }
 
   private void iterate() {
-    int input = iteration++ < totalInputs ? 1 : 0;
-    velocityFilter.add(input);
-    double velocityFilterOutput = velocityFilter.getAverage();
-    accerationFilter.add(velocityFilterOutput);
+    input = iteration++ < totalInputs ? 1 : 0;
+
+    velocityFilter.addLast(input);
+    velocityFilterTotal += input;
+    if (velocityFilter.size() > velocityFilterLength) {
+      velocityFilterTotal -= velocityFilter.removeFirst();
+    }
+    velocityFilterOutput = velocityFilterTotal / velocityFilterLength;
+
+    accelerationFilter.addLast(velocityFilterOutput);
+    accelerationFilterTotal += velocityFilterOutput;
+    if (accelerationFilter.size() > accelerationFilterLength) {
+      accelerationFilterTotal -= accelerationFilter.removeFirst();
+    }
 
     currentVelocity =
-        (velocityFilter.getSum() + velocityFilterOutput + accerationFilter.getSum())
-            / (velocityFilter.getSize() + accerationFilter.getSize() + 1)
-            * vProg;
+        (velocityFilterTotal + velocityFilterOutput + accelerationFilterTotal)
+            / (velocityFilterLength + accelerationFilterLength + 1)
+            * nominalVelocity;
 
-    elapsedDistance += ((previousVelocity + currentVelocity) / 2.0) * period;
     currentAcceleration = (currentVelocity - previousVelocity) / period;
+    elapsedDistance += ((previousVelocity + currentVelocity) / 2.0) * period;
     previousVelocity = currentVelocity;
 
     elapsedTime += period;
@@ -61,6 +69,10 @@ class Motion {
 
   private void outputCSVLine(FileWriter writer) throws IOException {
     writer.append(Double.toString(elapsedTime));
+    writer.append(",");
+    writer.append(Integer.toString(input * 100000));
+    writer.append(",");
+    writer.append(Double.toString(velocityFilterOutput * 100000));
     writer.append(",");
     writer.append(Double.toString(currentVelocity * 100));
     writer.append(",");
@@ -72,9 +84,15 @@ class Motion {
 
   void outputCSV(File file) {
     iteration = 0;
-    int count = totalInputs + velocityFilter.getSize() + accerationFilter.getSize();
+    int count = totalInputs + velocityFilterLength + accelerationFilterLength;
     try (FileWriter writer = new FileWriter(file)) {
-      writer.write("Time (ms),Velocity,Distance,Acceleration\n0.0,0.0,0.0,0.0\n");
+      writer.append("Time (ms),");
+      writer.append("Input,");
+      writer.append("Velocity Filter Output,");
+      writer.append("Velocity,");
+      writer.append("Distance,");
+      writer.append("Acceleration\n");
+      writer.append("0.0,0.0,0.0,0.0,0.0,0.0\n");
       for (int i = 0; i < count; i++) {
         iterate();
         outputCSVLine(writer);
