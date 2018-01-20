@@ -5,6 +5,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.Deque;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVPrinter;
 
 class Motion {
 
@@ -85,17 +87,27 @@ class Motion {
   void outputCSV(File file) {
     iteration = 0;
     int count = totalInputs + velocityFilterLength + accelerationFilterLength;
-    try (FileWriter writer = new FileWriter(file)) {
-      writer.append("Time (ms),");
-      writer.append("Input,");
-      writer.append("Velocity Filter Output,");
-      writer.append("Velocity,");
-      writer.append("Distance,");
-      writer.append("Acceleration\n");
-      writer.append("0.0,0.0,0.0,0.0,0.0,0.0\n");
+    try (FileWriter out = new FileWriter(file)) {
+      CSVPrinter printer =
+          CSVFormat.DEFAULT
+              .withHeader(
+                  "Time (ms)",
+                  "Input",
+                  "Velocity Filter Output",
+                  "Velocity",
+                  "Distance",
+                  "Acceleration")
+              .print(out);
+      printer.printRecord(0, 0, 0, 0, 0, 0);
       for (int i = 0; i < count; i++) {
         iterate();
-        outputCSVLine(writer);
+        printer.printRecord(
+            elapsedTime,
+            input,
+            velocityFilterOutput,
+            currentVelocity,
+            elapsedDistance,
+            currentAcceleration);
       }
     } catch (IOException e) {
       e.printStackTrace();
