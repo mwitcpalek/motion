@@ -9,6 +9,12 @@ repositories {
 }
 
 dependencies {
+    compile fileTree(dir: 'libs', include: '*.jar')
+    compile fileTree(dir: 'libs', include: '*.dylib')
+
     // https://mvnrepository.com/artifact/org.apache.commons/commons-csv
     compile group: 'org.apache.commons', name: 'commons-csv', version: '1.5'
+
+    // https://mvnrepository.com/artifact/com.squareup.moshi/moshi
+    compile group: 'com.squareup.moshi', name: 'moshi', version: '1.5.0'
 }

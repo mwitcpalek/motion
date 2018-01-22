@@ -16,7 +16,67 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" scope="PROVIDED" name="Gradle: org.apache.commons:commons-csv:1.5" level="project" />
+    <orderEntry type="library" scope="PROVIDED" name="Gradle: com.squareup.moshi:moshi:1.5.0" level="project" />
+    <orderEntry type="library" scope="PROVIDED" name="Gradle: com.squareup.okio:okio:1.13.0" level="project" />
+    <orderEntry type="module-library" scope="PROVIDED">
+      <library name="Gradle: Pathfinder-Java-1.8">
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/libs/Pathfinder-Java-1.8.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library" scope="PROVIDED">
+      <library name="Gradle: libpathfinderjava:dylib">
+        <CLASSES>
+          <root url="file://$MODULE_DIR$/libs/libpathfinderjava.dylib" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
     <orderEntry type="library" scope="RUNTIME" name="Gradle: org.apache.commons:commons-csv:1.5" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="Gradle: com.squareup.moshi:moshi:1.5.0" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="Gradle: com.squareup.okio:okio:1.13.0" level="project" />
+    <orderEntry type="module-library" scope="RUNTIME">
+      <library name="Gradle: Pathfinder-Java-1.8">
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/libs/Pathfinder-Java-1.8.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library" scope="RUNTIME">
+      <library name="Gradle: libpathfinderjava:dylib">
+        <CLASSES>
+          <root url="file://$MODULE_DIR$/libs/libpathfinderjava.dylib" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
     <orderEntry type="library" scope="TEST" name="Gradle: org.apache.commons:commons-csv:1.5" level="project" />
+    <orderEntry type="library" scope="TEST" name="Gradle: com.squareup.moshi:moshi:1.5.0" level="project" />
+    <orderEntry type="library" scope="TEST" name="Gradle: com.squareup.okio:okio:1.13.0" level="project" />
+    <orderEntry type="module-library" scope="TEST">
+      <library name="Gradle: Pathfinder-Java-1.8">
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/libs/Pathfinder-Java-1.8.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library" scope="TEST">
+      <library name="Gradle: libpathfinderjava:dylib">
+        <CLASSES>
+          <root url="file://$MODULE_DIR$/libs/libpathfinderjava.dylib" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
   </component>
 </module>
