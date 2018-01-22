@@ -1,116 +1,73 @@
 package io.j3ff.motion;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.ArrayDeque;
-import java.util.Deque;
-import org.apache.commons.csv.CSVFormat;
-import org.apache.commons.csv.CSVPrinter;
+// Definitions, from https://www.chiefdelphi.com/forums/showpost.php?p=1204107&postcount=18
+//
+//    dt  = iteration time, loop period in ms
+//    t1  = time for first filter, in ms
+//    t2  = time for second filter, in ms
+//   fl1  = filter 1 window length. fl1 = roundup(t1/dt)
+//   fl2  = filter 2 window length. fl2 = roundup(t2/dt)
+// v_prog = desired max speed, ft/sec
+//  dist  = travel distance, ft
+//    t4  = time to get to destination, in ms, at vProg. t4 = dist/vProg
+//     n  = number of inputs to filter. n = roundup(t4/dt)
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.DoubleStream;
+import java.util.stream.IntStream;
 
 class Motion {
 
-  private final int period;
-  private final double nominalVelocity;
-  private final Deque<Integer> velocityFilter;
-  private final int velocityFilterLength;
-  private final Deque<Double> accelerationFilter;
-  private final int accelerationFilterLength;
-  private final int totalInputs;
-  private double velocityFilterOutput;
-  private double velocityFilterTotal;
-  private double accelerationFilterTotal;
+  private final int dt;
+  private final double v_prog;
+  private final int[] f1;
+  private final double[] f2;
+  private final int n;
   private int iteration;
-  private int input;
-  private double previousVelocity;
-  private double currentVelocity;
-  private double currentAcceleration;
-  private double elapsedDistance;
-  private double elapsedTime;
 
-  Motion(int distance, int maxVelocity, int maxVelocityTime, int maxAccelerationTime, int period) {
-    this.period = period;
+  private double prev_vel;
+  private double prev_pos;
 
-    nominalVelocity = maxVelocity / 100d;
-    double nominalTime = distance / nominalVelocity;
-    totalInputs = (int) Math.ceil(nominalTime / period);
+  public Motion(int dt, int t1, int t2, double v_prog, double dist) {
+    this.dt = dt;
+    this.v_prog = v_prog;
+    f1 = new int[(int) Math.ceil((double) t1 / dt)];
+    f2 = new double[(int) Math.ceil((double) t2 / dt)];
 
-    velocityFilterLength = (int) Math.ceil(maxVelocityTime / period);
-    velocityFilter = new ArrayDeque<>(velocityFilterLength);
-    accelerationFilterLength = (int) Math.ceil(maxAccelerationTime / period);
-    accelerationFilter = new ArrayDeque<>(accelerationFilterLength);
+    double t4 = dist / v_prog * 1000;
+    n = (int) Math.ceil(t4 / dt);
+
+    System.out.println("t4 = " + t4);
+    System.out.println("n = " + n);
+    System.out.println("f1.length = " + f1.length);
+    System.out.println("f2.length = " + f2.length);
   }
 
-  private void iterate() {
-    input = iteration++ < totalInputs ? 1 : 0;
-
-    velocityFilter.addLast(input);
-    velocityFilterTotal += input;
-    if (velocityFilter.size() > velocityFilterLength) {
-      velocityFilterTotal -= velocityFilter.removeFirst();
-    }
-    velocityFilterOutput = velocityFilterTotal / velocityFilterLength;
-
-    accelerationFilter.addLast(velocityFilterOutput);
-    accelerationFilterTotal += velocityFilterOutput;
-    if (accelerationFilter.size() > accelerationFilterLength) {
-      accelerationFilterTotal -= accelerationFilter.removeFirst();
-    }
-
-    currentVelocity =
-        (velocityFilterTotal + velocityFilterOutput + accelerationFilterTotal)
-            / (velocityFilterLength + accelerationFilterLength + 1)
-            * nominalVelocity;
-
-    currentAcceleration = (currentVelocity - previousVelocity) / period;
-    elapsedDistance += ((previousVelocity + currentVelocity) / 2.0) * period;
-    previousVelocity = currentVelocity;
-
-    elapsedTime += period;
+  public boolean isFinished() {
+    return iteration == n + f1.length + f2.length + 1;
   }
 
-  private void outputCSVLine(FileWriter writer) throws IOException {
-    writer.append(Double.toString(elapsedTime));
-    writer.append(",");
-    writer.append(Integer.toString(input * 100000));
-    writer.append(",");
-    writer.append(Double.toString(velocityFilterOutput * 100000));
-    writer.append(",");
-    writer.append(Double.toString(currentVelocity * 100));
-    writer.append(",");
-    writer.append(Double.toString(elapsedDistance));
-    writer.append(",");
-    writer.append(Double.toString(currentAcceleration * 100 * 100));
-    writer.append("\n");
-  }
+  public List<Double> calculate() {
+    int input = iteration == 0 || iteration > n ? 0 : 1;
 
-  void outputCSV(File file) {
-    iteration = 0;
-    int count = totalInputs + velocityFilterLength + accelerationFilterLength;
-    try (FileWriter out = new FileWriter(file)) {
-      CSVPrinter printer =
-          CSVFormat.DEFAULT
-              .withHeader(
-                  "Time (ms)",
-                  "Input",
-                  "Velocity Filter Output",
-                  "Velocity",
-                  "Distance",
-                  "Acceleration")
-              .print(out);
-      printer.printRecord(0, 0, 0, 0, 0, 0);
-      for (int i = 0; i < count; i++) {
-        iterate();
-        printer.printRecord(
-            elapsedTime,
-            input,
-            velocityFilterOutput,
-            currentVelocity,
-            elapsedDistance,
-            currentAcceleration);
-      }
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
+    f1[iteration % f1.length] = input;
+    double f1_out = (double) IntStream.of(f1).sum() / f1.length;
+    f2[iteration % f2.length] = f1_out;
+    double f2_out = DoubleStream.of(f2).sum() / f2.length;
+    double curr_vel = f2_out * v_prog;
+    double curr_pos = (((prev_vel + curr_vel) / 2) * dt) / 1000 + prev_pos;
+    double curr_acc = (curr_vel - prev_vel) / ((double) dt / 1000);
+    prev_vel = curr_vel;
+    prev_pos = curr_pos;
+
+    // output
+    List<Double> output = new ArrayList<>();
+    output.add((double) iteration * dt);
+    output.add(curr_vel);
+    output.add(curr_pos);
+    output.add(curr_acc);
+    iteration++;
+    return output;
   }
 }
