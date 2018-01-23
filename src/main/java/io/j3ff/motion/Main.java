@@ -66,7 +66,7 @@ public class Main {
       CSVPrinter printer =
           CSVFormat.DEFAULT
               .withHeader(
-                  "Time", "X", "Y", "Position", "Velocity", "Acceleration", "Jerk", "Heading")
+                  "time", "x", "y", "position", "velocity", "acceleration", "jerk", "heading_rad")
               .print(out);
       printer.printRecord(0, 0, 0, 0, 0, 0, 0, 0);
       double elapsed_time = 0;
