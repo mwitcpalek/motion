@@ -17,4 +17,6 @@ dependencies {
 
     // https://mvnrepository.com/artifact/com.squareup.moshi/moshi
     compile group: 'com.squareup.moshi', name: 'moshi', version: '1.5.0'
+
+    compile 'com.moandjiezana.toml:toml4j:0.7.2'
 }

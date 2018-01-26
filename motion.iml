@@ -17,7 +17,9 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" scope="PROVIDED" name="Gradle: org.apache.commons:commons-csv:1.5" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Gradle: com.squareup.moshi:moshi:1.5.0" level="project" />
+    <orderEntry type="library" scope="PROVIDED" name="Gradle: com.moandjiezana.toml:toml4j:0.7.2" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Gradle: com.squareup.okio:okio:1.13.0" level="project" />
+    <orderEntry type="library" scope="PROVIDED" name="Gradle: com.google.code.gson:gson:2.8.1" level="project" />
     <orderEntry type="module-library" scope="PROVIDED">
       <library name="Gradle: Pathfinder-Java-1.8">
         <CLASSES>
@@ -38,7 +40,9 @@
     </orderEntry>
     <orderEntry type="library" scope="RUNTIME" name="Gradle: org.apache.commons:commons-csv:1.5" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="Gradle: com.squareup.moshi:moshi:1.5.0" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="Gradle: com.moandjiezana.toml:toml4j:0.7.2" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="Gradle: com.squareup.okio:okio:1.13.0" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="Gradle: com.google.code.gson:gson:2.8.1" level="project" />
     <orderEntry type="module-library" scope="RUNTIME">
       <library name="Gradle: Pathfinder-Java-1.8">
         <CLASSES>
@@ -59,7 +63,9 @@
     </orderEntry>
     <orderEntry type="library" scope="TEST" name="Gradle: org.apache.commons:commons-csv:1.5" level="project" />
     <orderEntry type="library" scope="TEST" name="Gradle: com.squareup.moshi:moshi:1.5.0" level="project" />
+    <orderEntry type="library" scope="TEST" name="Gradle: com.moandjiezana.toml:toml4j:0.7.2" level="project" />
     <orderEntry type="library" scope="TEST" name="Gradle: com.squareup.okio:okio:1.13.0" level="project" />
+    <orderEntry type="library" scope="TEST" name="Gradle: com.google.code.gson:gson:2.8.1" level="project" />
     <orderEntry type="module-library" scope="TEST">
       <library name="Gradle: Pathfinder-Java-1.8">
         <CLASSES>
