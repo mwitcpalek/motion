@@ -2,10 +2,6 @@ package io.j3ff.motion;
 
 import com.squareup.moshi.JsonAdapter;
 import com.squareup.moshi.Moshi;
-import jaci.pathfinder.Pathfinder;
-import jaci.pathfinder.Trajectory;
-import jaci.pathfinder.Trajectory.Segment;
-import jaci.pathfinder.Waypoint;
 import java.io.FileWriter;
 import java.io.IOException;
 import org.apache.commons.csv.CSVFormat;
@@ -17,6 +13,7 @@ public class Main {
     Moshi moshi = new Moshi.Builder().build();
     JsonAdapter<JupyterInput> jsonAdapter = moshi.adapter(JupyterInput.class);
     try {
+      System.out.println("args = " + args[0]);
       JupyterInput jupyterInput = jsonAdapter.fromJson(args[0]);
       assert jupyterInput != null;
       if (jupyterInput.motion != null) {
@@ -44,44 +41,17 @@ public class Main {
   }
 
   private static void pathfinder(JupyterInput.PathfinderInput in) throws IOException {
-    Waypoint points[] = new Waypoint[in.waypoints.length];
-    for (int i = 0; i < in.waypoints.length; i++) {
-      points[i] =
-          new Waypoint(
-              in.waypoints[i].x, in.waypoints[i].y, Pathfinder.d2r(in.waypoints[i].degrees));
-    }
-
-    Trajectory.Config config =
-        new Trajectory.Config(
-            Trajectory.FitMethod.HERMITE_CUBIC,
-            Trajectory.Config.SAMPLES_HIGH,
-            in.dt / 1000,
-            in.v_max * 0.3048,
-            in.a_max * 0.3048,
-            in.j_max * 0.3048);
-
-    Trajectory trajectory = Pathfinder.generate(points, config);
+    Pathfinder pathfinder = new Pathfinder(in.toml);
+    System.out.println(pathfinder);
 
     try (FileWriter out = new FileWriter("trajectory.csv")) {
       CSVPrinter printer =
           CSVFormat.DEFAULT
               .withHeader(
-                  "time", "x", "y", "position", "velocity", "acceleration", "jerk", "heading_rad")
+                  "dt", "x", "y", "position", "velocity", "acceleration", "jerk", "heading")
               .print(out);
       printer.printRecord(0, 0, 0, 0, 0, 0, 0, 0);
-      double elapsed_time = 0;
-      for (Segment seg : trajectory.segments) {
-        elapsed_time += seg.dt;
-        printer.printRecord(
-            elapsed_time * 1000,
-            seg.x,
-            seg.y,
-            seg.position,
-            seg.velocity * 3.28084,
-            seg.acceleration * 3.28084,
-            seg.jerk * 3.28084,
-            seg.heading);
-      }
+      printer.printRecords(pathfinder.calculate());
     }
   }
 }
